@@ -1,27 +1,31 @@
 import spotipy
 import json
 import config
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import requests
 import json
+
+target_date = (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d")
+print(target_date) # check against json
 
 def generate_playlist():
     # Make an HTTP GET request to the specified URL
     url = 'https://api.composer.nprstations.org/v1/widget/5182d007e1c809685c190ee6/playlist?t=1734458933947&prog_id=5589cfa0e1cb399609f9b81e&limit=50&errorMsg=No+results+found.+Please+modify+your+search+and+try+again.'
     response = requests.get(url)
+    print(response)
     
     # Check if the request was successful
     if response.status_code == 200:
         data = response.json()
         
-        # Create the playlist in the specified format
         playlist = [
-            {"song": track["trackName"], "artist": track["artistName"]} 
-            for episode in data.get("playlist", []) 
+            {"song": track["trackName"], "artist": track["artistName"]}
+            for episode in data.get("playlist", [])
+            if episode.get("date") == target_date
             for track in episode.get("playlist", [])
         ]
-        
+
         return playlist
     else:
         print("Failed to retrieve the playlist")
@@ -55,7 +59,7 @@ date = datetime.now().strftime("%Y-%m-%d")
 # Create a playlist 
 created_playlist = sp.user_playlist_create(
     user=current_user["id"],
-    name=f"Modern Music {date}",
+    name=f"Modern Music {target_date}",
     public=False
 )
 
