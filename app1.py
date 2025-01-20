@@ -1,10 +1,12 @@
 import spotipy
 import json
 import config
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import requests
 import json
+
+target_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
 def generate_playlist():
     # Make an HTTP GET request to the specified URL
@@ -14,14 +16,13 @@ def generate_playlist():
     # Check if the request was successful
     if response.status_code == 200:
         data = response.json()
-        
-        # Create the playlist in the specified format
+
         playlist = [
-            {"song": track["trackName"], "artist": track["artistName"]} 
-            for episode in data.get("playlist", []) 
+            {"song": track["trackName"], "artist": track["artistName"]}
+            for episode in data.get("playlist", [])
+            if episode.get("date") == target_date
             for track in episode.get("playlist", [])
         ]
-        
         return playlist
     else:
         print("Failed to retrieve the playlist")
@@ -50,12 +51,11 @@ for item in playlist:
     search_results = sp.search(q=query, type="track", limit=10)
     track_ids.append(search_results["tracks"]["items"][0]["id"])
 
-date = datetime.now().strftime("%Y-%m-%d")
 
 # Create a playlist 
 created_playlist = sp.user_playlist_create(
     user=current_user["id"],
-    name=f"In the Groove {date}",
+    name=f"In the Groove {target_date}",
     public=False
 )
 
